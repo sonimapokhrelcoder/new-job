@@ -1,5 +1,10 @@
-Project Explanation
-===================
+
+Simple Project Explanation (For Everyone):
+------------------------------------------
+This project is a job portal website where people can post jobs and search for jobs online. You can create your own profile, upload your photo, and add your contact details. Companies can post job openings, and job seekers can browse and apply for jobs. Everything you see on the website is stored safely in a database, so your information is not lost. The website is easy to use and works on your computer or phone.
+
+Technical Project Explanation
+============================
 
 - This is a simple job portal project built using React.js for the frontend and Node.js (Express) for the backend.
 - The frontend uses React Router for navigation between pages.
