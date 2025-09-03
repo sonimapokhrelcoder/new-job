@@ -14,7 +14,7 @@ function Home() {
   }, []);
 
   return (
-    <div className="bg-green-50 min-h-screen">
+    <div className=" min-h-screen">
       {/* Hero Section */}
       <section className="pt-28 pb-20 text-center">
         <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900">

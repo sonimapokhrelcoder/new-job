@@ -9,6 +9,7 @@ import Apply from './pages/Apply'
 import LoginPage from './pages/Login';
 import RegisterPage from './pages/Register';
 import Upload from './pages/Upload'
+import EditProfile from './pages/EditProfile'
 
 import ProfilePage from './pages/Profile';
 import './App.css'
@@ -26,6 +27,7 @@ function App() {
         <Route path='/signup' element={<RegisterPage />} />
         <Route path='/profile' element={<ProfilePage />} />
         <Route path='/uploadjobs' element={<Upload />} /> 
+        <Route path='/editprofile' element={<EditProfile />} />
       </Routes>
       <Footer/>
     </BrowserRouter>

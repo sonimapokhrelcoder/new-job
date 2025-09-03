@@ -6,20 +6,21 @@ export default function ProfilePage() {
     name: "",
     phone: "",
     username: "",
+    website: "",
     avatar: "",
   });
   const [loading, setLoading] = useState(true);
-  const [uploading, setUploading] = useState(false);
-  const [success, setSuccess] = useState(false);
+  const [jobs, setJobs] = useState([]);
 
   const navigate = useNavigate();
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    async function fetchUser() {
+
+    async function fetchUserAndJobs() {
       try {
+        // Fetch user profile
         const res = await fetch("http://localhost:5000/api/profile", {
-          method: "GET",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
@@ -31,54 +32,47 @@ export default function ProfilePage() {
           name: data.name,
           phone: data.phone,
           username: data.username,
+          website: data.website || "",
           avatar: data.avatar || "",
         });
+
+        // Fetch jobs posted by this user
+        const jobsRes = await fetch("http://localhost:5000/api/jobs");
+        const jobsData = await jobsRes.json();
+        if (jobsData && jobsData.jobs) {
+          setJobs(
+            jobsData.jobs.filter(
+              (j) =>
+                j.company &&
+                j.company.toLowerCase() === data.name.toLowerCase()
+            )
+          );
+        }
       } catch (err) {
         console.error(err);
+        setJobs([]);
       } finally {
         setLoading(false);
       }
     }
-    fetchUser();
-  }, []);
 
-  const handleUpload = async (e) => {
-    if (!e.target.files[0]) return;
-    const file = e.target.files[0];
-    const formData = new FormData();
-    formData.append("avatar", file);
-    setUploading(true);
-    setSuccess(false);
-    try {
-      const res = await fetch(`http://localhost:5000/api/upload/${user.username}`, {
-        method: "POST",
-        body: formData,
-      });
-      if (!res.ok) throw new Error("Upload failed");
-      const data = await res.json();
-      setUser((prev) => ({ ...prev, avatar: data.user.avatar }));
-      setSuccess(true);
-    } catch (err) {
-      console.error(err);
-      setSuccess(false);
-    } finally {
-      setUploading(false);
-    }
-  };
+    fetchUserAndJobs();
+  }, []);
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-100 via-white to-green-200">
-        <p className="text-green-700 text-xl animate-pulse">Loading profile...</p>
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <p className="text-gray-800 text-xl animate-pulse">Loading profile...</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen w-full flex flex-col items-center justify-center bg-gradient-to-br from-green-100 via-white to-green-200 py-8">
-      <div className="relative bg-white/80 backdrop-blur-lg border border-green-200 shadow-2xl rounded-3xl px-10 py-12 flex flex-col items-center max-w-lg w-full animate-fade-in">
-        <div className="absolute -top-16 left-1/2 -translate-x-1/2">
-          <div className="w-36 h-36 rounded-full bg-gradient-to-tr from-green-400 to-green-700 shadow-lg flex items-center justify-center overflow-hidden border-4 border-white animate-avatar-pop">
+    <div className="mt-[50px]  min-h-screen w-full flex flex-col md:flex-row bg-white py-8 px-4 md:px-12">
+      {/* Sidebar */}
+      <aside className="w-full md:w-1/3 flex flex-col items-center md:items-end mb-8 md:mb-0">
+        <div className="bg-white border border-gray-200 shadow-lg rounded-3xl px-8 py-10 flex flex-col items-center w-full max-w-xs">
+          <div className="w-32 h-32 rounded-full bg-gray-300 flex items-center justify-center overflow-hidden border-4 border-white mb-4">
             {user.avatar ? (
               <img
                 src={`http://localhost:5000${user.avatar}`}
@@ -86,64 +80,69 @@ export default function ProfilePage() {
                 className="w-full h-full object-cover"
               />
             ) : (
-              <span className="text-7xl text-white drop-shadow-lg" role="img" aria-label="profile">👤</span>
+              <span className="text-6xl text-white drop-shadow-lg" role="img" aria-label="profile">👤</span>
             )}
           </div>
-        </div>
-        <h1 className="text-4xl font-extrabold text-green-700 mt-24 mb-2 tracking-tight">{user.name}</h1>
-        <p className="text-lg text-gray-700 mb-1">
-          <span className="font-semibold">@{user.username}</span>
-        </p>
-        <p className="text-lg text-gray-700 mb-4">
-          <span className="font-semibold">Phone:</span> {user.phone}
-        </p>
-        <div className="flex flex-col items-center gap-2 w-full">
-          <label className="cursor-pointer bg-green-600 text-white px-6 py-2 rounded-xl font-semibold shadow hover:bg-green-700 transition mb-2">
-            {uploading ? (
-              <span className="flex items-center gap-2">
-                <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
-                </svg>
-                Uploading...
-              </span>
-            ) : (
-              <span className="flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 16V4m0 0l-4 4m4-4l4 4m-8 8h8" />
-                </svg>
-                Upload Avatar
-              </span>
+          <div className="text-center">
+            <h1 className="text-2xl font-extrabold text-gray-800 mb-1">{user.name}</h1>
+            <p className="text-md text-gray-600 mb-1">@{user.username}</p>
+            <p className="text-md text-gray-600 mb-1">{user.phone}</p>
+            {user.website && (
+              <p className="text-md text-blue-700 mb-2">
+                <a
+                  href={user.website}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline hover:text-blue-900"
+                >
+                  {user.website}
+                </a>
+              </p>
             )}
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleUpload}
-              className="hidden"
-            />
-          </label>
-          {success && (
-            <div className="flex items-center gap-2 text-green-700 animate-fade-in">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-              </svg>
-              <span className="font-semibold">Avatar uploaded!</span>
-            </div>
-          )}
+          </div>
+          <button
+            onClick={() => navigate("/editprofile")}
+            className="mt-4 bg-black text-white px-6 py-2 rounded-xl font-semibold shadow hover:bg-gray-900 transition w-full"
+          >
+            Edit Profile
+          </button>
         </div>
-        <button
-          onClick={() => navigate("/upload?jobs")}
-          className="mt-6 bg-gradient-to-r from-blue-500 to-blue-700 text-white px-8 py-3 rounded-xl font-bold text-lg shadow-lg hover:scale-105 transition-transform duration-200"
-        >
-          Upload Jobs
-        </button>
-      </div>
-      <style>{`
-        .animate-fade-in { animation: fadeIn 0.7s ease; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: none; } }
-        .animate-avatar-pop { animation: avatarPop 0.7s cubic-bezier(.22,1,.36,1); }
-        @keyframes avatarPop { from { opacity: 0; transform: scale(0.7); } to { opacity: 1; transform: scale(1); } }
-      `}</style>
+      </aside>
+
+      {/* Main Content */}
+      <main className="flex-1 flex flex-col items-center px-4 md:px-8">
+        <div className="w-full max-w-3xl bg-white border border-gray-200 shadow-lg rounded-3xl px-8 py-10">
+          <h2 className="text-2xl font-bold text-gray-800 mb-6">Jobs Posted</h2>
+          {jobs.length === 0 ? (
+            <p className="text-gray-500">No jobs posted yet.</p>
+          ) : (
+            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {jobs.map((job) => (
+                <li
+                  key={job._id}
+                  className="border border-gray-200 rounded-lg p-4 shadow flex flex-col justify-between"
+                >
+                  <div>
+                    <div className="font-semibold text-lg text-gray-800">{job.title}</div>
+                    <div className="text-gray-600">{job.location} &bull; {job.salary}</div>
+                  </div>
+                  <div className="mt-2">
+                    <span className="bg-gray-200 text-gray-800 px-3 py-1 rounded-full text-xs font-semibold">
+                      {job.company}
+                    </span>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+          <button
+            onClick={() => navigate("/uploadjobs")}
+            className="mt-8 bg-black text-white px-8 py-3 rounded-xl font-bold text-lg shadow hover:bg-gray-900 transition w-full"
+          >
+            Upload Jobs
+          </button>
+        </div>
+      </main>
     </div>
   );
 }

@@ -1,3 +1,12 @@
+// Get all unique companies
+app.get("/api/companies", async (req, res) => {
+  try {
+    const companies = await Job.distinct("company");
+    res.status(200).json({ companies });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch companies" });
+  }
+});
 // server.js
 import express from "express";
 import mongoose from "mongoose";
